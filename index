@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Лунный календарь снов — мини-лендинг</title>
+  <meta name="description" content="Таблица: лунные сутки, фаза и влияние на сны (оценочно)." />
+  <style>
+    :root{
+      --bg:#111111; --ink:#E8E8E8; --muted:#9AA0A6; --gold:#C3A56A; --card:#151515; --border:#222;
+      --radius:12px; --shadow:0 8px 24px rgba(0,0,0,.35);
+      --fs:18px; --lh:1.6;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/var(--lh) var(--font)}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    header{position:sticky;top:0;background:rgba(17,17,17,.85);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border);z-index:10}
+    header .wrap{display:flex;align-items:center;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+    .brand img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+    .brand span{font-weight:600}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      box-shadow:var(--shadow);padding:16px;margin:16px 0}
+    h1,h2{margin:0 0 8px 0}
+    .gold{color:var(--gold)}
+    .muted{color:var(--muted)}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+    .btn{background:var(--gold);color:#111;border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid var(--gold);color:var(--ink)}
+    .btn:focus{outline:2px solid var(--gold);outline-offset:2px}
+    select{background:#101010;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:8px}
+    table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    th,td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+    th{background:#0f0f0f;text-align:left}
+    tr:nth-child(even){background:#141414}
+    .today{outline:2px solid var(--gold);outline-offset:-2px}
+    .phase{white-space:nowrap}
+    footer{opacity:.85;border-top:1px solid var(--border);padding:12px 0;margin:12px 0}
+    @media (max-width:720px){
+      .hide-sm{display:none}
+      table{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a class="brand" href="#">
+        <img src="logo.png" alt="Логотип" onerror="this.style.display='none'">
+        <span>Лунный календарь снов</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h1 class="gold">Лунный календарь снов</h1>
+      <p class="muted">Таблица на выбранный месяц: лунные сутки, фаза и ориентировочное влияние на сновидения (<b>оценочно</b>).</p>
+
+      <div class="controls">
+        <button class="btn" id="prevBtn" aria-label="Предыдущий месяц">←</button>
+        <div id="monthLabel" style="min-width:220px;font-weight:600"></div>
+        <button class="btn" id="nextBtn" aria-label="Следующий месяц">→</button>
+        <button class="btn ghost" id="todayBtn">Сегодня</button>
+        <select id="tzSelect" title="Часовой пояс">
+          <!-- заполним из JS -->
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Лунный календарь снов">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Лунные сутки</th>
+              <th class="hide-sm">Фаза</th>
+              <th>Значение для снов</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <p class="muted" style="margin-top:12px">
+        Источники: астрономический расчёт возраста Луны (приближённо) + простые правила для фаз. Для точной локализации используйте город и корректный часовой пояс.
+      </p>
+    </section>
+
+    <footer>
+      <p>© <span id="year"></span> • Стиль: чёрный графит + приглушённое золото • Все трактовки — <b>оценочно</b>.</p>
+    </footer>
+  </main>
+
+  <script>
+    // ==== Локализация месяцев RU ====
+    const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+
+    // ==== Астрономия: возраст Луны (дни) и маппинг фаз ====
+    const SYNODIC = 29.530588853; // средний синодический месяц (дней)
+    const REF = Date.UTC(2000,0,6,18,14,0); // новолуние-референс 2000-01-06 18:14 UTC
+
+    function toTZ(date, tz){ // вернуть Date, пересчитанный в выбранный TZ на полдень (чтобы меньше скачков)
+      const d = new Date(date);
+      const str = d.toLocaleString('sv-SE', { timeZone: tz, hour12:false });
+      // sv-SE -> 'YYYY-MM-DD HH:mm:ss'
+      const [datePart] = str.split(' ');
+      return new Date(datePart + 'T12:00:00' + offsetISO(tz, d)); // 12:00 локального дня
+    }
+
+    function offsetISO(tz, baseDate){
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, hour12:false,
+        year:'numeric',month:'2-digit',day:'2-digit',
+        hour:'2-digit',minute:'2-digit',second:'2-digit'
+      }).formatToParts(baseDate);
+      const rebuild = d => new Date(`${d.year}-${d.month}-${d.day}T${d.hour}:${d.minute}:${d.second}Z`);
+      const loc = rebuild(Object.fromEntries(parts.map(p=>[p.type,p.value])));
+      const utc = new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate(), baseDate.getUTCHours(), baseDate.getUTCMinutes(), baseDate.getUTCSeconds()));
+      const diffMin = Math.round((loc - utc) / 60000);
+      const sign = diffMin >= 0 ? '+' : '-';
+      const m = Math.abs(diffMin);
+      const hh = String(Math.floor(m/60)).padStart(2,'0');
+      const mm = String(m%60).padStart(2,'0');
+      return sign + hh + ':' + mm;
+    }
+
+    function moonAge(date){ // date в UTC
+      const ms = date.getTime() - REF;
+      const days = ms / 86400000;
+      const age = ((days % SYNODIC) + SYNODIC) % SYNODIC;
+      return age;
+    }
+
+    function lunarDayFromAge(age){ // 1..30
+      const d = Math.floor(age) + 1;
+      return Math.max(1, Math.min(30, d));
+    }
+
+    function phaseNameFromAge(age){
+      // Примерные границы по возрасту Луны
+      if (age < 1.0 || age >= 29.0) return "Новолуние";
+      if (age < 7.4) return "Растущий серп";
+      if (age < 8.6) return "Первая четверть";
+      if (age < 14.8) return "Растущая выпуклая";
+      if (age < 15.8) return "Полнолуние";
+      if (age < 22.1) return "Убывающая выпуклая";
+      if (age < 23.6) return "Последняя четверть";
+      return "Убывающий серп";
+    }
+
+    function dreamEffects(phase){ // короткие «оценочно»
+      if (phase === "Полнолуние") return "Сны яркие и насыщенные; записывайте сразу.";
+      if (phase === "Новолуние") return "Сны фрагментарные; задайте намерение на цикл.";
+      if (phase.includes("Растущий")) return "Темы роста, стартов, обучения.";
+      if (phase.includes("Убывающ")) return "Про завершение, отпускание, порядок.";
+      return "Нейтральный фон; важен личный контекст.";
+    }
+
+    // ==== Рендер месяца ====
+    let current = new Date(); // сегодня
+    let tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const tbody = document.getElementById('tbody');
+    const monthLabel = document.getElementById('monthLabel');
+    const prevB
