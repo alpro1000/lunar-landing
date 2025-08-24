@@ -534,3 +534,65 @@ todayBtn.addEventListener("click",()=>{ navDate=new Date(); renderMonth(); });
 </script>
 </body>
 </html>
+<section id="dreambook" style="padding:24px 16px; max-width: 900px; margin: 0 auto;">
+  <h2>Современный сонник</h2>
+  <input id="dreamSearch" type="search" placeholder="Найдите символ… (например, вода, полёт)" 
+         style="width:100%; padding:12px; border-radius:10px; border:1px solid #444; margin:12px 0;">
+  <div id="dreamCount" style="opacity:.8; margin-bottom:8px;"></div>
+  <div class="table-wrap" style="overflow:auto; border:1px solid #333; border-radius:12px;">
+    <table id="dreamTable" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:10px; border-bottom:1px solid #333;">Символ</th>
+          <th style="text-align:left; padding:10px; border-bottom:1px solid #333;">Кратко</th>
+          <th style="text-align:left; padding:10px; border-bottom:1px solid #333;">Уверенность</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+(async function(){
+  // путь для GitHub Pages: /lunar-landing/ + ваш файл
+  const DATA_URL = location.pathname.includes('/lunar-landing') 
+    ? '/lunar-landing/data/dreams_curated.json' 
+    : 'data/dreams_curated.json';
+
+  let data = [];
+  try {
+    const res = await fetch(DATA_URL, {cache:'no-store'});
+    data = await res.json();
+  } catch(e) {
+    console.error('Не удалось загрузить сонник:', e);
+    return;
+  }
+
+  const tbody = document.querySelector('#dreamTable tbody');
+  const counter = document.getElementById('dreamCount');
+  const search = document.getElementById('dreamSearch');
+
+  function render(rows){
+    tbody.innerHTML = '';
+    rows.slice(0,500).forEach(r => { // safety: до 500 строк на экран
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding:10px; border-bottom:1px solid #222; font-weight:600">${r.symbol}</td>
+        <td style="padding:10px; border-bottom:1px solid #222">${(r.modern_interpretation||'').slice(0,220)}…</td>
+        <td style="padding:10px; border-bottom:1px solid #222">${(r.confidence??'').toString()}</td>`;
+      tbody.appendChild(tr);
+    });
+    counter.textContent = `Найдено: ${rows.length} символов`;
+  }
+
+  function filter(q){
+    q = q.trim().toLowerCase();
+    if (!q) return data;
+    return data.filter(r => r.symbol.toLowerCase().includes(q) || (r.contexts||[]).some(c => c.includes(q)));
+  }
+
+  render(data);
+  search.addEventListener('input', (e)=> render(filter(e.target.value)));
+})();
+</script>
