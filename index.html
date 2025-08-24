@@ -3,225 +3,676 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Лунный календарь снов — мини-лендинг</title>
-  <meta name="description" content="Таблица: лунные сутки, фаза и влияние на сны (оценочно)." />
+  <title>Lunar Dream Calendar — Лунный календарь снов</title>
+  <meta name="description" content="Дата → лунные сутки → тип снов → заметки (оценочно). Мультиязычно, с выбором часового пояса." />
+  <!-- читаемые шрифты с широкой поддержкой языков -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --bg:#111111; --ink:#E8E8E8; --muted:#9AA0A6; --gold:#C3A56A; --card:#151515; --border:#222;
-      --radius:12px; --shadow:0 8px 24px rgba(0,0,0,.35);
-      --fs:18px; --lh:1.6;
-      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+      /* спокойная «таинственная» палитра с высокой читабельностью (WCAG AA+) */
+      --bg: #0d0f12;
+      --card: #12151b;
+      --ink: #ECEFF4;
+      --muted: #A7B0BC;
+      --border: #1E232B;
+      --accent: #C8A75A;   /* приглушённое золото */
+      --accent-2: #87C5C9; /* холодный бирюзовый для акцентов */
+      --radius: 14px;
+      --shadow: 0 10px 28px rgba(0,0,0,.45);
+      --fs: 18px; --lh: 1.7;
+      --font: "Inter","Noto Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
     }
+
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/var(--lh) var(--font)}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
-    header{position:sticky;top:0;background:rgba(17,17,17,.85);backdrop-filter:blur(8px);
-      border-bottom:1px solid var(--border);z-index:10}
-    header .wrap{display:flex;align-items:center;gap:12px}
-    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-    .brand img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
-    .brand span{font-weight:600}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-      box-shadow:var(--shadow);padding:16px;margin:16px 0}
-    h1,h2{margin:0 0 8px 0}
-    .gold{color:var(--gold)}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 20% -10%, #12151b 0%, #0d0f12 60%) no-repeat fixed;
+      color:var(--ink);
+      font: var(--fs)/var(--lh) var(--font);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrap{max-width:1000px;margin:0 auto;padding:16px}
+    header{
+      position:sticky; top:0; z-index:10;
+      background: rgba(13,15,18,.75);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    header .wrap{display:flex;align-items:center;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
+    .brand svg{width:34px;height:34px;flex:0 0 auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+    .brand span{font-weight:600;letter-spacing:.2px}
+
+    .controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .select, .btn, .input{
+      background:#0f1217; color:var(--ink); border:1px solid var(--border);
+      border-radius:10px; padding:8px 12px; font-size:16px
+    }
+    .btn{cursor:pointer; background:var(--accent); color:#0d0f12; border:0}
+    .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--accent)}
+    .btn:focus-visible, .select:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
+
+    main .card{
+      background: linear-gradient(180deg, rgba(25,29,36,.85), rgba(18,21,27,.95));
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:16px; margin:16px 0;
+    }
+
+    h1{font-size:28px; line-height:1.3; margin:0 0 6px 0}
+    h2{font-size:20px; margin:0 0 6px 0; color:var(--muted)}
+    .gold{color:var(--accent)}
     .muted{color:var(--muted)}
-    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
-    .btn{background:var(--gold);color:#111;border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid var(--gold);color:var(--ink)}
-    .btn:focus{outline:2px solid var(--gold);outline-offset:2px}
-    select{background:#101010;color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:8px}
-    table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    th,td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
-    th{background:#0f0f0f;text-align:left}
-    tr:nth-child(even){background:#141414}
-    .today{outline:2px solid var(--gold);outline-offset:-2px}
-    .phase{white-space:nowrap}
-    footer{opacity:.85;border-top:1px solid var(--border);padding:12px 0;margin:12px 0}
-    @media (max-width:720px){
-      .hide-sm{display:none}
-      table{font-size:16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
+    .toolbar .spacer{flex:1 1 auto}
+
+    .table-wrap{border:1px solid var(--border); border-radius:12px; overflow:hidden}
+    .scroll{overflow:auto}
+    table{width:100%; border-collapse:collapse; min-width:720px}
+    thead th{
+      position:sticky; top:0; z-index:1;
+      background:#10141a; color:var(--ink);
+      text-align:left; padding:10px; border-bottom:1px solid var(--border); font-weight:600;
+    }
+    tbody td{padding:10px; border-bottom:1px solid var(--border); vertical-align:top}
+    tbody tr:nth-child(even){background:#121820}
+    .today{outline:2px solid var(--accent); outline-offset:-2px}
+    .dateCell{white-space:nowrap}
+    .dayCell{font-variant-numeric: tabular-nums; font-family: var(--mono)}
+    .typeCell{font-weight:600}
+    .notesCell{color:var(--ink)}
+    .footnote{font-size:14px}
+
+    footer{opacity:.9; border-top:1px solid var(--border); padding:14px 0; margin:12px 0}
+
+    @media (max-width:760px){
+      h1{font-size:24px}
+      table{min-width:640px}
+      .select, .btn{font-size:15px}
     }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <a class="brand" href="#">
-        <img src="logo.png" alt="Логотип" onerror="this.style.display='none'">
-        <span>Лунный календарь снов</span>
+      <a class="brand" href="#" aria-label="Home">
+        <!-- маленький встроенный логотип (SVG), можно заменить на <img src="logo.png"> -->
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <defs><radialGradient id="g" cx="0" cy="0" r="1" gradientTransform="translate(18 12) rotate(45) scale(28 24)">
+            <stop stop-color="#C8A75A"/><stop offset="1" stop-color="#7B632E"/>
+          </radialGradient></defs>
+          <path d="M31 6a17 17 0 1 0 0 36 17 17 0 0 1-6-33.1A17 17 0 0 1 31 6Z" fill="url(#g)"/>
+        </svg>
+        <span id="brandName">Lunar Dream Calendar</span>
       </a>
+
+      <div class="controls">
+        <select id="lang" class="select" aria-label="Language"></select>
+        <select id="tz" class="select" aria-label="Time zone"></select>
+        <button id="prev" class="btn" aria-label="Previous month">←</button>
+        <div id="monthLabel" class="muted" style="min-width:220px;font-weight:600"></div>
+        <button id="next" class="btn" aria-label="Next month">→</button>
+        <button id="today" class="btn ghost" aria-label="Today">●</button>
+      </div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="card">
-      <h1 class="gold">Лунный календарь снов</h1>
-      <p class="muted">Таблица на выбранный месяц: лунные сутки, фаза и ориентировочное влияние на сновидения (<b>оценочно</b>).</p>
+      <h1 class="gold" id="title">Лунный календарь снов</h1>
+      <h2 id="subtitle" class="muted">Таблица: дата → лунные сутки → тип снов → заметки (оценочно).</h2>
 
-      <div class="controls">
-        <button class="btn" id="prevBtn" aria-label="Предыдущий месяц">←</button>
-        <div id="monthLabel" style="min-width:220px;font-weight:600"></div>
-        <button class="btn" id="nextBtn" aria-label="Следующий месяц">→</button>
-        <button class="btn ghost" id="todayBtn">Сегодня</button>
-        <select id="tzSelect" title="Часовой пояс">
-          <!-- заполним из JS -->
-        </select>
+      <div class="toolbar">
+        <div class="row">
+          <span id="tzLabel" class="muted">Часовой пояс:</span>
+          <code id="tzActive" style="color:var(--accent)"></code>
+        </div>
+        <div class="spacer"></div>
+        <div class="row">
+          <span id="legend" class="muted">Выделено — текущая дата</span>
+        </div>
       </div>
 
       <div class="table-wrap">
-        <table aria-label="Лунный календарь снов">
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Лунные сутки</th>
-              <th class="hide-sm">Фаза</th>
-              <th>Значение для снов</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
+        <div class="scroll">
+          <table aria-label="Lunar dream table">
+            <thead>
+              <tr>
+                <th id="thDate">Дата</th>
+                <th id="thDay">Лунные сутки</th>
+                <th id="thType">Тип снов</th>
+                <th id="thNotes">Заметки</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
       </div>
 
-      <p class="muted" style="margin-top:12px">
-        Источники: астрономический расчёт возраста Луны (приближённо) + простые правила для фаз. Для точной локализации используйте город и корректный часовой пояс.
+      <p id="sources" class="muted footnote" style="margin-top:10px">
+        Источники/примечание: возраст Луны рассчитывается приближённо (оценочно) по выбранному часовому поясу; типы/заметки — по заданной таблице.
       </p>
     </section>
 
     <footer>
-      <p>© <span id="year"></span> • Стиль: чёрный графит + приглушённое золото • Все трактовки — <b>оценочно</b>.</p>
+      <p id="footerText">© <span id="year"></span> • Акцент: приглушённое золото • Все толкования — оценочно; не медицинский совет.</p>
     </footer>
   </main>
 
   <script>
-    // ==== Локализация месяцев RU ====
-    const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+    /* =========================
+       1) I18N: UI строки
+       ========================= */
+    const I18N = {
+      ru: {
+        brand: "Лунный календарь снов",
+        title: "Лунный календарь снов",
+        subtitle: "Таблица: дата → лунные сутки → тип снов → заметки (оценочно).",
+        thDate: "Дата",
+        thDay: "Лунные сутки",
+        thType: "Тип снов",
+        thNotes: "Краткие пометки",
+        tzLabel: "Часовой пояс:",
+        legend: "Выделено — текущая дата",
+        sources: "Источники/примечание: возраст Луны рассчитывается приближённо (оценочно) по выбранному часовому поясу; типы/заметки — по заданной таблице.",
+        footer: "© {year} • Акцент: приглушённое золото • Все толкования — оценочно; не медицинский совет."
+      },
+      en: {
+        brand: "Lunar Dream Calendar",
+        title: "Lunar Dream Calendar",
+        subtitle: "Table: date → lunar day → dream type → notes (indicative).",
+        thDate: "Date",
+        thDay: "Lunar day",
+        thType: "Dream type",
+        thNotes: "Notes",
+        tzLabel: "Time zone:",
+        legend: "Highlighted — today",
+        sources: "Notes: Moon age is approximated for the selected time zone; dream types/notes come from the provided table.",
+        footer: "© {year} • Accent: muted gold • All interpretations are indicative; not medical advice."
+      },
+      de: {
+        brand: "Mondkalender der Träume",
+        title: "Mondkalender der Träume",
+        subtitle: "Tabelle: Datum → Mondtag → Traumtyp → Notizen (indikativ).",
+        thDate: "Datum",
+        thDay: "Mondtag",
+        thType: "Traumtyp",
+        thNotes: "Notizen",
+        tzLabel: "Zeitzone:",
+        legend: "Hervorgehoben — heute",
+        sources: "Hinweis: Mondalter wird näherungsweise für die gewählte Zeitzone berechnet; Traumtypen/Notizen stammen aus der bereitgestellten Tabelle.",
+        footer: "© {year} • Akzent: gedämpftes Gold • Alle Deutungen sind indikativ; keine medizinische Auskunft."
+      },
+      es: {
+        brand: "Calendario lunar de sueños",
+        title: "Calendario lunar de sueños",
+        subtitle: "Tabla: fecha → día lunar → tipo de sueño → notas (indicativo).",
+        thDate: "Fecha",
+        thDay: "Día lunar",
+        thType: "Tipo de sueño",
+        thNotes: "Notas",
+        tzLabel: "Huso horario:",
+        legend: "Resaltado — hoy",
+        sources: "Notas: la edad lunar se calcula de forma aproximada según el huso; tipos/notas provienen de la tabla proporcionada.",
+        footer: "© {year} • Acento: oro atenuado • Todas las interpretaciones son indicativas; no constituyen consejo médico."
+      },
+      it: {
+        brand: "Calendario lunare dei sogni",
+        title: "Calendario lunare dei sogni",
+        subtitle: "Tabella: data → giorno lunare → tipo di sogno → note (indicativo).",
+        thDate: "Data",
+        thDay: "Giorno lunare",
+        thType: "Tipo di sogno",
+        thNotes: "Note",
+        tzLabel: "Fuso orario:",
+        legend: "Evidenziato — oggi",
+        sources: "Note: l'età della Luna è stimata per il fuso selezionato; tipi/note dalla tabella fornita.",
+        footer: "© {year} • Accento: oro tenue • Tutte le interpretazioni sono indicative; non costituiscono consiglio medico."
+      },
+      uk: {
+        brand: "Місячний календар снів",
+        title: "Місячний календар снів",
+        subtitle: "Таблиця: дата → місячна доба → тип сну → нотатки (орієнтовно).",
+        thDate: "Дата",
+        thDay: "Місячна доба",
+        thType: "Тип сну",
+        thNotes: "Нотатки",
+        tzLabel: "Часовий пояс:",
+        legend: "Підсвічено — сьогодні",
+        sources: "Примітка: вік Місяця обчислюється наближено для обраного поясу; типи/нотатки взяті з наданої таблиці.",
+        footer: "© {year} • Акцент: приглушене золото • Усі тлумачення орієнтовні; не є медичною порадою."
+      },
+      fr: {
+        brand: "Calendrier lunaire des rêves",
+        title: "Calendrier lunaire des rêves",
+        subtitle: "Tableau : date → jour lunaire → type de rêve → notes (indicatif).",
+        thDate: "Date",
+        thDay: "Jour lunaire",
+        thType: "Type de rêve",
+        thNotes: "Notes",
+        tzLabel: "Fuseau horaire :",
+        legend: "Surligné — aujourd’hui",
+        sources: "Remarque : l’âge de la Lune est estimé pour le fuseau choisi ; types/notes proviennent du tableau fourni.",
+        footer: "© {year} • Accent : or feutré • Toutes les interprétations sont indicatives ; pas un avis médical."
+      }
+    };
 
-    // ==== Астрономия: возраст Луны (дни) и маппинг фаз ====
-    const SYNODIC = 29.530588853; // средний синодический месяц (дней)
-    const REF = Date.UTC(2000,0,6,18,14,0); // новолуние-референс 2000-01-06 18:14 UTC
+    /* =========================
+       2) Таблица day,type,notes — ВАШИ ДАННЫЕ (локализовано)
+       ========================= */
+    // Источник RU (как вы дали)
+    const TABLE_RU = [
+      null, // 0 заглушка
+      {type:"без фиксированной категории",notes:"Лучшее время формулировать намерения; если снится — трактуйте как ориентир, не как прогноз."},
+      {type:"без отдельной метки",notes:"День про щедрость и планирование; спец. категории снов нет."},
+      {type:"проверочные; склонные к воплощению",notes:"Преодоление во сне → в жизни проверка/шанс реализации."},
+      {type:"предостерегающие; родовые",notes:"Темы семьи/предков; требовательные к вниманию сны."},
+      {type:"нейтрально-позитивные",notes:"Благоприятный фон; строгих правил нет."},
+      {type:"предвосхищающие; интуитивные",notes:"Хорошо ловятся линии будущего; уединение помогает."},
+      {type:"высокоинформативные",notes:"Часто сбываются; фиксируйте детали."},
+      {type:"пророческие про призвание",notes:"Намёки на предназначение, долгий курс."},
+      {type:"без явной категории",notes:"День напряжённый; спец. правил по снам нет."},
+      {type:"в основном «пустые»",notes:"Без сильных признаков информативность низкая; с акцентами — род/семья."},
+      {type:"маркер на завтрашние «вещие»",notes:"Сигнал, что 12-е может быть значимым."},
+      {type:"светлые и сбывающиеся",notes:"Чистые, доброкачественные сны."},
+      {type:"инсайты и указатели",notes:"Озарения; импульс тянется на следующую ночь."},
+      {type:"эмоциональная разрядка",notes:"Неприятные сюжеты как выпуск напряжения."},
+      {type:"без фиксированной категории",notes:"День с предостережениями; тип снов не задан."},
+      {type:"очистительные",notes:"Снимают внутреннее напряжение."},
+      {type:"нейтрально-рабочие",notes:"Без спец. ожиданий по снам."},
+      {type:"энергетические (не предсказательные)",notes:"Для практик силы/света."},
+      {type:"преимущественно неинформативные",notes:"Можно не задерживаться на расшифровке."},
+      {type:"без отдельной метки",notes:"Фокус на воле; тип не задан."},
+      {type:"восстановительные (на следующую ночь)",notes:"Ночью далее — исцеление без новой инфы."},
+      {type:"познавательные; обучающие",notes:"Приносят знания и рабочие подсказки."},
+      {type:"инверсионные («наоборот»)",notes:"Трактовка «наоборот» (учитывать контекст)."},
+      {type:"диагностические",notes:"Отражают состояние тела/сексуальности."},
+      {type:"тишина / минимум сигналов",notes:"Чаще пауза восприятия."},
+      {type:"про самооценку",notes:"Зеркалят самооценку и заботу о себе."},
+      {type:"интуитивно-пророческие (две ночи)",notes:"Озарения сегодня и завтра."},
+      {type:"уравновешенные",notes:"Гармоничный фон; без жёсткой метки."},
+      {type:"пограничные; «ритуальные»",notes:"Переходные сюжеты; отдельной классификации нет."},
+      {type:"итоговые пророческие",notes:"Много информации; подсвечивают ошибки и рост."}
+    ];
 
-    function toTZ(date, tz){ // вернуть Date, пересчитанный в выбранный TZ на полдень (чтобы меньше скачков)
-      const d = new Date(date);
-      const str = d.toLocaleString('sv-SE', { timeZone: tz, hour12:false });
-      // sv-SE -> 'YYYY-MM-DD HH:mm:ss'
-      const [datePart] = str.split(' ');
-      return new Date(datePart + 'T12:00:00' + offsetISO(tz, d)); // 12:00 локального дня
-    }
+    // Переводы (EN/DE/ES/IT/UK/FR) — соответствуют тем же дням 1..30
+    const TABLE_EN = [null,
+      {type:"no fixed category",notes:"Best time to set intentions and plans; treat any dream as a compass, not a forecast."},
+      {type:"no separate label",notes:"A day of generosity/planning; no specific dream category."},
+      {type:"testing; likely to materialize",notes:"Overcoming hurdles in a dream → life will test you; scenario is actionable."},
+      {type:"cautionary; ancestral",notes:"Family/ancestors themes; dreams warn of risks and require attentiveness."},
+      {type:"neutral-positive",notes:"Favorable backdrop; no strict rules."},
+      {type:"anticipatory; intuitive",notes:"Future lines are easier to grasp; solitude sharpens clarity."},
+      {type:"highly informative",notes:"Often come true; capture details."},
+      {type:"prophetic about vocation",notes:"Hints at calling and long-term direction."},
+      {type:"no clear category",notes:"Tense day; no special dream rules."},
+      {type:"mostly “empty”",notes:"Without strong markers there’s little meaning; with accents — family/lineage themes."},
+      {type:"marker for tomorrow’s ‘prophetic’",notes:"Signal that the 12th may be significant."},
+      {type:"bright and fulfilled",notes:"Quiet, clear dreams, often confirmed."},
+      {type:"insights and pointers",notes:"Epiphanies; momentum continues into the next night."},
+      {type:"emotional discharge",notes:"Unpleasant plots release tension rather than predict events."},
+      {type:"no fixed category",notes:"Warnings in the day; no specific dream type."},
+      {type:"cleansing",notes:"Helps release inner strain."},
+      {type:"neutral, worklike",notes:"No special expectations."},
+      {type:"energetic (not predictive)",notes:"Good for power/light practice."},
+      {type:"mostly non-informative",notes:"You can skip decoding."},
+      {type:"no separate label",notes:"Resolve and will; no set dream type."},
+      {type:"restorative (next night)",notes:"Next night brings little info but supports recharge/healing."},
+      {type:"knowledge-bearing; instructive",notes:"Brings know-how and practical hints."},
+      {type:"inverted (‘opposite’)",notes:"Interpret in reverse (consider context)."},
+      {type:"diagnostic",notes:"Reflects state of body/sexual energy."},
+      {type:"quiet / minimal signals",notes:"Often a pause and sensory rest."},
+      {type:"about self-esteem",notes:"Highlights self-worth, boundaries, self-care."},
+      {type:"intuitive-prophetic (two nights)",notes:"Insights today and tomorrow."},
+      {type:"balanced",notes:"Harmonious background; no rigid label."},
+      {type:"liminal; ‘ritual’",notes:"Transitional motifs; no separate classification."},
+      {type:"final prophetic",notes:"Rich in information; show mistakes and growth points."}
+    ];
 
-    function offsetISO(tz, baseDate){
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: tz, hour12:false,
-        year:'numeric',month:'2-digit',day:'2-digit',
-        hour:'2-digit',minute:'2-digit',second:'2-digit'
+    const TABLE_DE = [null,
+      {type:"keine feste Kategorie",notes:"Beste Zeit für Intentionen/Pläne; Träume als Kompass, nicht als Vorhersage."},
+      {type:"ohne eigene Kennzeichnung",notes:"Tag der Großzügigkeit/Planung; keine spezielle Traumkategorie."},
+      {type:"prüfend; zur Umsetzung neigend",notes:"Hindernisse im Traum überwinden → Bewährungsprobe im Leben; umsetzbar."},
+      {type:"warnend; ahnenbezogen",notes:"Familie/Vorfahren; Träume mahnen zur Aufmerksamkeit."},
+      {type:"neutral-positiv",notes:"Günstiger Hintergrund; keine strengen Regeln."},
+      {type:"vorausschauend; intuitiv",notes:"Zukünftige Linien erfassbar; Einsamkeit erhöht Klarheit."},
+      {type:"sehr informativ",notes:"Häufig zutreffend; Details notieren."},
+      {type:"prophetisch zur Berufung",notes:"Hinweise auf Berufung/Langfristkurs."},
+      {type:"ohne klare Kategorie",notes:"Angespannter Tag; keine Sonderregeln."},
+      {type:"meist „leer“",notes:"Ohne starke Marker wenig Gehalt; mit Akzenten—Familie/Abstammung."},
+      {type:"Marker für morgen „prophetisch“",notes:"Signal, dass der 12. bedeutsam sein kann."},
+      {type:"hell und zutreffend",notes:"Ruhige, klare Träume, oft bestätigt."},
+      {type:"Aha-Momente und Hinweise",notes:"Eingebungen; Impuls bis zur nächsten Nacht."},
+      {type:"emotionale Entladung",notes:"Unangenehme Szenen = Spannungsabfuhr."},
+      {type:"keine feste Kategorie",notes:"Warnungen im Tag; kein spezieller Traumtyp."},
+      {type:"reinigend",notes:"Innere Spannung lösen."},
+      {type:"neutral-arbeitsam",notes:"Keine besonderen Erwartungen."},
+      {type:"energetisch (nicht prädiktiv)",notes:"Für Kraft/Licht-Praxis gut."},
+      {type:"überwiegend nicht informativ",notes:"Deutung kann man auslassen."},
+      {type:"ohne eigene Kennzeichnung",notes:"Entschlossenheit; kein fester Typ."},
+      {type:"regenerativ (nächste Nacht)",notes:"Nächste Nacht wenig Info, aber Erholung/Heilung."},
+      {type:"wissensbringend; lehrreich",notes:"Bringt Wissen und praktische Hinweise."},
+      {type:"invertiert („umgekehrt“)",notes:"Im Gegenteil deuten (Kontext beachten)."},
+      {type:"diagnostisch",notes:"Spiegelt Körper/sexuelle Energie."},
+      {type:"Stille / minimale Signale",notes:"Pause, Ruhe der Wahrnehmung."},
+      {type:"über Selbstwert",notes:"Selbstwert, Grenzen, Selbstfürsorge."},
+      {type:"intuitiv-prophetisch (zwei Nächte)",notes:"Eingebungen heute und morgen."},
+      {type:"ausgeglichen",notes:"Harmonischer Hintergrund."},
+      {type:"liminal; „rituall“",notes:"Übergangsmotive; keine Extra-Klasse."},
+      {type:"abschließend prophetisch",notes:"Informationsreich; Fehler und Wachstumspunkte."}
+    ];
+
+    const TABLE_ES = [null,
+      {type:"sin categoría fija",notes:"Mejor momento para fijar intenciones y planes; brújula, no pronóstico."},
+      {type:"sin etiqueta específica",notes:"Día de generosidad/planificación; sin categoría especial."},
+      {type:"de prueba; tendentes a realizarse",notes:"Superar obstáculos en el sueño → prueba en la vida; realizable."},
+      {type:"de advertencia; ancestrales",notes:"Familia/ancestros; requieren atención."},
+      {type:"neutral-positivo",notes:"Fondo favorable; sin reglas estrictas."},
+      {type:"anticipatorios; intuitivos",notes:"Se captan líneas del futuro; la soledad aclara."},
+      {type:"muy informativos",notes:"A menudo se cumplen; anota detalles."},
+      {type:"proféticos sobre la vocación",notes:"Insinúan vocación y dirección a largo plazo."},
+      {type:"sin categoría clara",notes:"Día tenso; sin reglas especiales."},
+      {type:"mayormente «vacíos»",notes:"Sin marcadores fuertes hay poco sentido; con señales — familia/linaje."},
+      {type:"marcador para los «proféticos» de mañana",notes:"Señal de que el 12 puede ser significativo."},
+      {type:"luminosos y veraces",notes:"Sueños claros y tranquilos, a menudo confirmados."},
+      {type:"insight y directrices",notes:"Aparición de indicaciones; impulso sigue la próxima noche."},
+      {type:"descarga emocional",notes:"Escenas desagradables liberan tensión."},
+      {type:"sin categoría fija",notes:"Advertencias del día; sin tipo especial."},
+      {type:"depurativos",notes:"Ayudan a soltar tensión interna."},
+      {type:"neutral-laborales",notes:"Sin expectativas especiales."},
+      {type:"energéticos (no predictivos)",notes:"Para prácticas de fuerza/luz."},
+      {type:"principalmente no informativos",notes:"Puedes omitir la interpretación."},
+      {type:"sin etiqueta específica",notes:"Determinación; sin tipo definido."},
+      {type:"restaurativos (la próxima noche)",notes:"Poca info, pero recarga y sana."},
+      {type:"de conocimiento; didácticos",notes:"Aportan saber y consejos prácticos."},
+      {type:"invertidos («al revés»)",notes:"Se interpretan al contrario (según contexto)."},
+      {type:"diagnósticos",notes:"Reflejan estado del cuerpo/energía sexual."},
+      {type:"silencio / señales mínimas",notes:"Pausa y descanso de la percepción."},
+      {type:"sobre autoestima",notes:"Resaltan valía propia, límites, autocuidado."},
+      {type:"intuitivo-proféticos (dos noches)",notes:"Revelaciones hoy y mañana."},
+      {type:"equilibrados",notes:"Fondo armonioso; sin etiqueta rígida."},
+      {type:"liminales; «rituales»",notes:"Motivos de transición; sin clasificación aparte."},
+      {type:"proféticos de cierre",notes:"Ricos en información; muestran errores y crecimiento."}
+    ];
+
+    const TABLE_IT = [null,
+      {type:"senza categoria fissa",notes:"Momento ideale per fissare intenzioni e piani; bussola, non previsione."},
+      {type:"senza etichetta specifica",notes:"Giorno di generosità/pianificazione; nessuna categoria speciale."},
+      {type:"di verifica; inclini a realizzarsi",notes:"Superare ostacoli nel sogno → prova nella vita; attuabile."},
+      {type:"di avvertimento; legati agli antenati",notes:"Famiglia/antenati; richiedono attenzione."},
+      {type:"neutro-positivo",notes:"Sfondo favorevole; niente regole rigide."},
+      {type:"anticipatori; intuitivi",notes:"Si colgono linee di futuro; la solitudine chiarisce."},
+      {type:"altamente informativi",notes:"Spesso si avverano; annota i dettagli."},
+      {type:"profetici sulla vocazione",notes:"Alludono a vocazione e rotta di lungo periodo."},
+      {type:"senza categoria chiara",notes:"Giorno teso; nessuna regola speciale."},
+      {type:"per lo più «vuoti»",notes:"Senza marcatori forti poco senso; con segni — famiglia/linea."},
+      {type:"marcatore per i «profetici» di domani",notes:"Segnale che il 12 può essere significativo."},
+      {type:"luminosi e veritieri",notes:"Sogni chiari e sereni, spesso confermati."},
+      {type:"intuizioni e indicazioni",notes:"Illuminazioni; impulso continua alla notte seguente."},
+      {type:"scarico emotivo",notes:"Scene spiacevoli rilasciano tensione."},
+      {type:"senza categoria fissa",notes:"Avvertimenti del giorno; nessun tipo speciale."},
+      {type:"purificatori",notes:"Sciolgono tensioni interne."},
+      {type:"neutri-operosi",notes:"Nessuna aspettativa particolare."},
+      {type:"energetici (non predittivi)",notes:"Per pratiche di forza/luce."},
+      {type:"prevalentemente non informativi",notes:"Si può tralasciare la lettura."},
+      {type:"senza etichetta specifica",notes:"Determinazione; nessun tipo definito."},
+      {type:"restorativi (la notte successiva)",notes:"Poca info ma ricarica e guarigione."},
+      {type:"portatori di conoscenza; didattici",notes:"Apportano sapere e spunti pratici."},
+      {type:"invertiti («al contrario»)",notes:"Si leggono al contrario (col contesto)."},
+      {type:"diagnostici",notes:"Riflettono stato del corpo/energia sessuale."},
+      {type:"silenzio / segnali minimi",notes:"Pausa e riposo della percezione."},
+      {type:"sull'autostima",notes:"Evidenziano valore di sé, confini, cura di sé."},
+      {type:"intuitivi-profetici (due notti)",notes:"Rivelazioni oggi e domani."},
+      {type:"equilibrati",notes:"Sfondo armonioso; senza etichetta rigida."},
+      {type:"liminali; «rituali»",notes:"Motivi di transizione; nessuna classe separata."},
+      {type:"profetici conclusivi",notes:"Ricchi d'informazioni; mostrano errori e crescita."}
+    ];
+
+    const TABLE_UK = [null,
+      {type:"без фіксованої категорії",notes:"Найкращий час для намірів і планів; сни — компас, не прогноз."},
+      {type:"без окремої позначки",notes:"День щедрості/планування; окремої категорії немає."},
+      {type:"перевірочні; схильні до втілення",notes:"Подолання перешкод у сні → випробування в житті; здійсненно."},
+      {type:"застережні; родові",notes:"Теми сім'ї/предків; потребують уваги."},
+      {type:"нейтрально-позитивні",notes:"Сприятливий фон; без жорстких правил."},
+      {type:"передбачувальні; інтуїтивні",notes:"Легко вловити лінії майбутнього; усамітнення додає ясності."},
+      {type:"високоінформативні",notes:"Часто збуваються; фіксуйте деталі."},
+      {type:"пророчі про покликання",notes:"Натякають на покликання і довгостроковий курс."},
+      {type:"без чіткої категорії",notes:"Напружений день; без спец. правил."},
+      {type:"переважно «порожні»",notes:"Без яскравих маркерів мало сенсу; з акцентами — родина/рід."},
+      {type:"маркер на завтрашні «віщі»",notes:"Сигнал, що 12-го може бути значущою."},
+      {type:"світлі й правдиві",notes:"Тихі, ясні сни, часто підтверджуються."},
+      {type:"інсайти й підказки",notes:"Осяяння; імпульс тягнеться на наступну ніч."},
+      {type:"емоційне розвантаження",notes:"Неприємні сюжети — про випуск напруги."},
+      {type:"без фіксованої категорії",notes:"Попередження дня; особливого типу немає."},
+      {type:"очисні",notes:"Знімають внутрішню напругу."},
+      {type:"нейтрально-робочі",notes:"Без особливих очікувань."},
+      {type:"енергетичні (не пророчі)",notes:"Добрі для практик сили/світла."},
+      {type:"здебільшого неінформативні",notes:"Можна не тлумачити."},
+      {type:"без окремої позначки",notes:"Рішучість; тип не задано."},
+      {type:"відновні (наступної ночі)",notes:"Мало інформації, але є підзарядка/зцілення."},
+      {type:"пізнавальні; навчальні",notes:"Приносять знання і практичні підказки."},
+      {type:"інверсійні («навпаки»)",notes:"Тлумачення у зворотному ключі (з контекстом)."},
+      {type:"діагностичні",notes:"Віддзеркалюють стан тіла/сексуальної енергії."},
+      {type:"тиша / мінімум сигналів",notes:"Пауза і відпочинок сприйняття."},
+      {type:"про самооцінку",notes:"Підсвічують власну цінність, межі, турботу про себе."},
+      {type:"інтуїтивно-пророчі (дві ночі)",notes:"Осяяння сьогодні і завтра."},
+      {type:"збалансовані",notes:"Гармонійний фон; без жорсткої позначки."},
+      {type:"пограничні; «ритуальні»",notes:"Перехідні мотиви; без окремої класифікації."},
+      {type:"підсумкові пророчі",notes:"Багато інформації; показують помилки та ріст."}
+    ];
+
+    const TABLE_FR = [null,
+      {type:"sans catégorie fixe",notes:"Moment idéal pour poser des intentions et des plans ; boussole, pas une prédiction."},
+      {type:"sans étiquette dédiée",notes:"Jour de générosité/planification ; pas de catégorie spéciale."},
+      {type:"de mise à l’épreuve; enclins à se réaliser",notes:"Franchir un obstacle en rêve → épreuve dans la vie ; réalisable."},
+      {type:"avertisseurs; lignées familiales",notes:"Famille/ancêtres ; demandent vigilance."},
+      {type:"neutres-positifs",notes:"Contexte favorable ; pas de règles strictes."},
+      {type:"anticipatifs; intuitifs",notes:"Les lignes du futur s’attrapent mieux ; la solitude clarifie."},
+      {type:"très informatifs",notes:"Souvent avérés ; notez les détails."},
+      {type:"prophétiques sur la vocation",notes:"Suggèrent vocation et cap de long terme."},
+      {type:"sans catégorie claire",notes:"Journée tendue ; pas de règles spéciales."},
+      {type:"plutôt «vides»",notes:"Sans marqueurs forts, peu de sens ; avec signes — famille/lignage."},
+      {type:"marqueur pour les «prophétiques» de demain",notes:"Signal que le 12 peut être marquant."},
+      {type:"lumineux et véridiques",notes:"Rêves clairs et calmes, souvent confirmés."},
+      {type:"insights et indications",notes:"Éclairages ; l’élan continue la nuit suivante."},
+      {type:"décharge émotionnelle",notes:"Rêves désagréables = libération de tension."},
+      {type:"sans catégorie fixe",notes:"Mises en garde du jour ; pas de type particulier."},
+      {type:"purificateurs",notes:"Allègent la tension intérieure."},
+      {type:"neutres-productifs",notes:"Sans attentes particulières."},
+      {type:"énergétiques (non prédictifs)",notes:"Bon pour pratiques de force/lumière."},
+      {type:"majoritairement non informatifs",notes:"On peut se passer d’interprétation."},
+      {type:"sans étiquette dédiée",notes:"Détermination ; pas de type défini."},
+      {type:"restaurateurs (nuit suivante)",notes:"Peu d’info mais recharge/guérison."},
+      {type:"porteurs de savoir; pédagogiques",notes:"Apportent connaissances et pistes pratiques."},
+      {type:"inversés («à l’envers»)",notes:"Lecture inverse (en tenant compte du contexte)."},
+      {type:"diagnostiques",notes:"Reflètent l’état du corps/énergie sexuelle."},
+      {type:"silence / signaux minimaux",notes:"Pause et repos de la perception."},
+      {type:"sur l’estime de soi",notes:"Met en lumière valeur personnelle, limites, soin de soi."},
+      {type:"intuitifs-prophétiques (deux nuits)",notes:"Illuminations aujourd’hui et demain."},
+      {type:"équilibrés",notes:"Contexte harmonieux ; sans étiquette rigide."},
+      {type:"liminaires ; «rituels»",notes:"Motifs de transition ; pas de classification séparée."},
+      {type:"prophétiques de clôture",notes:"Riches en informations ; montrent erreurs et axes de croissance."}
+    ];
+
+    const TABLES = { ru: TABLE_RU, en: TABLE_EN, de: TABLE_DE, es: TABLE_ES, it: TABLE_IT, uk: TABLE_UK, fr: TABLE_FR };
+
+    /* =========================
+       3) Часовые пояса (расширенный список)
+       ========================= */
+    const TZ_LIST = [
+      "Auto (system)",
+      "Europe/Prague","Europe/Kyiv","Europe/Moscow","Europe/Warsaw","Europe/Berlin","Europe/Paris",
+      "Europe/London","Europe/Madrid","Europe/Rome","Europe/Istanbul","Europe/Athens",
+      "Asia/Dubai","Asia/Tbilisi","Asia/Yerevan","Asia/Almaty","Asia/Tashkent","Asia/Novosibirsk",
+      "Asia/Kolkata","Asia/Bangkok","Asia/Hong_Kong","Asia/Shanghai","Asia/Tokyo","Asia/Seoul",
+      "Australia/Sydney","Pacific/Auckland",
+      "Africa/Cairo","Africa/Johannesburg","Africa/Nairobi",
+      "America/Sao_Paulo","America/Buenos_Aires","America/Toronto","America/New_York",
+      "America/Chicago","America/Denver","America/Los_Angeles","America/Mexico_City",
+      "America/Bogota","America/Lima","America/Santiago"
+    ];
+
+    /* =========================
+       4) Астрономия: возраст Луны → лунные сутки (аппрокс.)
+       ========================= */
+    const SYNODIC = 29.530588853; // длительность синодического месяца (суток)
+    const REF = Date.UTC(2000,0,6,18,14,0); // опорное новолуние 2000-01-06 18:14 UTC
+
+    // Помощник: ISO-смещение для выбранного TZ (±hh:mm)
+    function offsetISO(tz, baseDate) {
+      const parts = new Intl.DateTimeFormat('en-US',{
+        timeZone: tz, hour12:false, year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
       }).formatToParts(baseDate);
-      const rebuild = d => new Date(`${d.year}-${d.month}-${d.day}T${d.hour}:${d.minute}:${d.second}Z`);
-      const loc = rebuild(Object.fromEntries(parts.map(p=>[p.type,p.value])));
+      const m = Object.fromEntries(parts.map(p=>[p.type,p.value]));
+      const local = new Date(`${m.year}-${m.month}-${m.day}T${m.hour}:${m.minute}:${m.second}Z`);
       const utc = new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate(), baseDate.getUTCHours(), baseDate.getUTCMinutes(), baseDate.getUTCSeconds()));
-      const diffMin = Math.round((loc - utc) / 60000);
+      const diffMin = Math.round((local - utc)/60000);
       const sign = diffMin >= 0 ? '+' : '-';
-      const m = Math.abs(diffMin);
-      const hh = String(Math.floor(m/60)).padStart(2,'0');
-      const mm = String(m%60).padStart(2,'0');
-      return sign + hh + ':' + mm;
+      const min = Math.abs(diffMin);
+      const hh = String(Math.floor(min/60)).padStart(2,'0');
+      const mm = String(min%60).padStart(2,'0');
+      return `${sign}${hh}:${mm}`;
     }
 
-    function moonAge(date){ // date в UTC
+    // Преобразование даты к «полудню» в нужном TZ (уменьшает пограничные скачки)
+    function toTZNoon(date, tz) {
+      const d = new Date(date);
+      const iso = d.toLocaleDateString('sv-SE',{timeZone: tz}); // YYYY-MM-DD
+      return new Date(`${iso}T12:00:00${offsetISO(tz,d)}`);
+    }
+
+    function moonAge(date){ // date в ms UTC
       const ms = date.getTime() - REF;
       const days = ms / 86400000;
       const age = ((days % SYNODIC) + SYNODIC) % SYNODIC;
       return age;
     }
+    function lunarDayFromAge(age){ return Math.max(1, Math.min(30, Math.floor(age)+1)); }
 
-    function lunarDayFromAge(age){ // 1..30
-      const d = Math.floor(age) + 1;
-      return Math.max(1, Math.min(30, d));
+    /* =========================
+       5) UI init
+       ========================= */
+    const $ = (id)=>document.getElementById(id);
+    const langSel = $("lang");
+    const tzSel = $("tz");
+    const monthLabel = $("monthLabel");
+    const tbody = $("tbody");
+    const prevBtn = $("prev"), nextBtn = $("next"), todayBtn = $("today");
+
+    const SUPPORTED = ["ru","en","de","es","it","uk","fr"];
+    const sysLang = (navigator.language||"ru").slice(0,2).toLowerCase();
+    let lang = SUPPORTED.includes(sysLang) ? sysLang : "ru";
+    let tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Prague";
+    let current = new Date();
+
+    // заполнение селектов
+    function fillLang() {
+      SUPPORTED.forEach(code=>{
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = ({
+          ru:"Русский", en:"English", de:"Deutsch",
+          es:"Español", it:"Italiano", uk:"Українська", fr:"Français"
+        })[code];
+        langSel.appendChild(opt);
+      });
+      langSel.value = lang;
+    }
+    function fillTZ() {
+      TZ_LIST.forEach(z=>{
+        const opt = document.createElement("option");
+        opt.value = z; opt.textContent = z;
+        tzSel.appendChild(opt);
+      });
+      tzSel.value = tzSel.querySelector(`option[value="${tz}"]`) ? tz : "Auto (system)";
+      $("tzActive").textContent = tzSel.value === "Auto (system)" ? tz : tzSel.value;
     }
 
-    function phaseNameFromAge(age){
-      // Примерные границы по возрасту Луны
-      if (age < 1.0 || age >= 29.0) return "Новолуние";
-      if (age < 7.4) return "Растущий серп";
-      if (age < 8.6) return "Первая четверть";
-      if (age < 14.8) return "Растущая выпуклая";
-      if (age < 15.8) return "Полнолуние";
-      if (age < 22.1) return "Убывающая выпуклая";
-      if (age < 23.6) return "Последняя четверть";
-      return "Убывающий серп";
+    // локализация UI
+    function applyI18N() {
+      const t = I18N[lang];
+      $("brandName").textContent = t.brand;
+      $("title").textContent = t.title;
+      $("subtitle").textContent = t.subtitle;
+      $("thDate").textContent = t.thDate;
+      $("thDay").textContent = t.thDay;
+      $("thType").textContent = t.thType;
+      $("thNotes").textContent = t.thNotes;
+      $("tzLabel").textContent = t.tzLabel;
+      $("legend").textContent = t.legend;
+      $("sources").textContent = t.sources;
+      $("footerText").textContent = t.footer.replace("{year}", new Date().getFullYear());
+      document.documentElement.lang = lang;
     }
 
-    function dreamEffects(phase){ // короткие «оценочно»
-      if (phase === "Полнолуние") return "Сны яркие и насыщенные; записывайте сразу.";
-      if (phase === "Новолуние") return "Сны фрагментарные; задайте намерение на цикл.";
-      if (phase.includes("Растущий")) return "Темы роста, стартов, обучения.";
-      if (phase.includes("Убывающ")) return "Про завершение, отпускание, порядок.";
-      return "Нейтральный фон; важен личный контекст.";
+    // форматтер даты для выбранного языка/пояса
+    function fmtDate(d, tz) {
+      return new Intl.DateTimeFormat(lang, { timeZone: tz, day:"2-digit", month:"long", year:"numeric" }).format(d);
     }
 
-    // ==== Рендер месяца ====
-    let current = new Date(); // сегодня
-    let tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // отрисовка месяца
+    function renderMonth() {
+      const uiTZ = tzSel.value === "Auto (system)" ? tz : tzSel.value;
+      $("tzActive").textContent = uiTZ;
+      const year = current.getFullYear(); const month = current.getMonth();
+      monthLabel.textContent = new Intl.DateTimeFormat(lang, { month:"long", year:"numeric", timeZone: uiTZ }).format(current);
 
-    const tbody = document.getElementById('tbody');
-    const monthLabel = document.getElementById('monthLabel');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const todayBtn = document.getElementById('todayBtn');
-    const tzSelect = document.getElementById('tzSelect');
+      const firstUTC = new Date(Date.UTC(year, month, 1));
+      const nextUTC = new Date(Date.UTC(year, month+1, 1));
+      const table = TABLES[lang] || TABLES.ru;
 
-    // заполним несколько популярных TZ + текущий
-    const TZ_LIST = Array.from(new Set([
-      tz, "Europe/Moscow", "Europe/Prague", "Europe/Berlin", "Asia/Almaty", "Asia/Tbilisi", "Asia/Yerevan"
-    ]));
-    TZ_LIST.forEach(z => {
-      const opt = document.createElement('option');
-      opt.value = z; opt.textContent = z;
-      tzSelect.appendChild(opt);
-    });
-    tzSelect.value = tz;
-    tzSelect.addEventListener('change', () => { tz = tzSelect.value; renderMonth(); });
-
-    function renderMonth(){
-      const year = current.getFullYear();
-      const month = current.getMonth();
-      monthLabel.textContent = `${MONTHS[month]} ${year}`;
       tbody.innerHTML = "";
-
-      const first = new Date(Date.UTC(year, month, 1));
-      const nextMonth = new Date(Date.UTC(year, month+1, 1));
-      for (let d = new Date(first); d < nextMonth; d.setUTCDate(d.getUTCDate()+1)) {
-        // полдень выбранного TZ для стабильности
-        const localNoon = toTZ(d, tz);
+      for (let d = new Date(firstUTC); d < nextUTC; d.setUTCDate(d.getUTCDate()+1)) {
+        const localNoon = toTZNoon(d, uiTZ);
         const age = moonAge(localNoon);
         const lday = lunarDayFromAge(age);
-        const phase = phaseNameFromAge(age);
-        const eff = dreamEffects(phase);
+        const row = table[lday];
 
-        const tr = document.createElement('tr');
-        const isoLocal = localNoon.toLocaleDateString('ru-RU', { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit' }).split('.').reverse().join('-');
-        const isToday = (() => {
-          const t = new Date().toLocaleDateString('sv-SE', { timeZone: tz });
-          const row = localNoon.toLocaleDateString('sv-SE', { timeZone: tz });
-          return t === row;
-        })();
-        if (isToday) tr.classList.add('today');
+        const tr = document.createElement("tr");
+        const isToday = (new Intl.DateTimeFormat('sv-SE',{timeZone: uiTZ}).format(localNoon) ===
+                         new Intl.DateTimeFormat('sv-SE',{timeZone: uiTZ}).format(new Date()));
+        if (isToday) tr.classList.add("today");
 
-        tr.innerHTML = `
-          <td>${isoLocal}</td>
-          <td>${lday}</td>
-          <td class="phase hide-sm">${phase}</td>
-          <td>${eff}</td>
-        `;
+        const tdDate = document.createElement("td");
+        tdDate.className = "dateCell";
+        tdDate.textContent = fmtDate(localNoon, uiTZ);
+
+        const tdDay = document.createElement("td");
+        tdDay.className = "dayCell";
+        tdDay.textContent = String(lday);
+
+        const tdType = document.createElement("td");
+        tdType.className = "typeCell";
+        tdType.textContent = row.type;
+
+        const tdNotes = document.createElement("td");
+        tdNotes.className = "notesCell";
+        tdNotes.textContent = row.notes;
+
+        tr.append(tdDate, tdDay, tdType, tdNotes);
         tbody.appendChild(tr);
       }
     }
 
-    prevBtn.addEventListener('click', () => { current.setMonth(current.getMonth()-1); renderMonth(); });
-    nextBtn.addEventListener('click', () => { current.setMonth(current.getMonth()+1); renderMonth(); });
-    todayBtn.addEventListener('click', () => { current = new Date(); renderMonth(); });
+    // события
+    langSel.addEventListener("change", ()=>{ lang = langSel.value; applyI18N(); renderMonth(); });
+    tzSel.addEventListener("change", ()=>{
+      if (tzSel.value === "Auto (system)") { $("tzActive").textContent = tz; }
+      renderMonth();
+    });
+    prevBtn.addEventListener("click", ()=>{ current.setMonth(current.getMonth()-1); renderMonth(); });
+    nextBtn.addEventListener("click", ()=>{ current.setMonth(current.getMonth()+1); renderMonth(); });
+    todayBtn.addEventListener("click", ()=>{ current = new Date(); renderMonth(); });
 
-    document.getElementById('year').textContent = new Date().getFullYear();
-    renderMonth();
+    // старт
+    fillLang(); fillTZ(); applyI18N(); $("year").textContent = new Date().getFullYear(); renderMonth();
   </script>
 </body>
 </html>
