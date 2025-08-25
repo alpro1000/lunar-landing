@@ -15,7 +15,7 @@ sources:
     enabled: true
     paths: []                  # если положите свои CSV/JSON в etl/input/*.*
 llm_paraphrase:
-  enabled: false               # включите true, если есть OPENAI_API_KEY
+  enabled: true               # включите true, если есть OPENAI_API_KEY
   model: gpt-4o-mini
 limits:
   min_text_len: 100
