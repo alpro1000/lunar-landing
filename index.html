@@ -88,6 +88,134 @@
       table{min-width:620px}
       .moonIco{font-size:22px}
     }
+    <section id="interpret" class="card" style="margin-top:16px">
+  <h2 class="gold" style="margin:0 0 8px">Разбор сна (оценочно)</h2>
+  <p class="muted" style="margin:0 0 10px">Вставьте текст сна — покажем связанные символы и краткие пояснения из современного корпуса.</p>
+
+  <textarea id="dreamText" rows="5" placeholder="Опишите ваш сон…"
+    style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#0f1217;color:var(--ink);"></textarea>
+
+  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+    <label class="muted">Лунные сутки (опц.):</label>
+    <select id="lunarHint" class="select">
+      <option value="">—</option>
+      ${Array.from({length:30},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+    </select>
+    <button id="analyzeBtn" class="btn" style="font-weight:700">Разобрать сон</button>
+    <span id="interpretStatus" class="muted" style="margin-left:auto"></span>
+  </div>
+
+  <div id="interpretResult" style="margin-top:12px;display:none">
+    <div id="hitSymbols" style="margin:8px 0;display:flex;gap:8px;flex-wrap:wrap"></div>
+    <div id="explain"></div>
+    <div id="advices" class="muted" style="margin-top:6px"></div>
+  </div>
+</section>
+<script>
+(function(){
+  // === Настройка: если появится серверный бэкенд, укажи его URL ниже, иначе оставь пустым.
+  const API_URL = ""; // напр.: "https://your-backend.example.com/api/interpret"
+  // Куда идти за современным сонником (у тебя уже есть этот файл благодаря ETL)
+  const DREAMS_URL = location.pathname.includes('/lunar-landing')
+    ? '/lunar-landing/data/dreams_curated.json'
+    : 'data/dreams_curated.json';
+
+  let CURATED = []; // [{symbol, modern_interpretation, confidence, ...}, ...]
+
+  // Загружаем современный сонник (если уже загружал где-то выше — можно переиспользовать глобальную переменную)
+  fetch(DREAMS_URL, {cache:'no-store'}).then(r => r.ok ? r.json() : []).then(j => { CURATED = j || []; });
+
+  const $ = sel => document.querySelector(sel);
+  const dreamEl = $("#dreamText");
+  const lunarEl = $("#lunarHint");
+  const btn = $("#analyzeBtn");
+  const box = $("#interpretResult");
+  const chips = $("#hitSymbols");
+  const explain = $("#explain");
+  const advices = $("#advices");
+  const status = $("#interpretStatus");
+
+  function tokenize(s){ return (s||"").toLowerCase().replace(/[^\p{L}\p{N}\s-]+/gu,' ').split(/\s+/).filter(Boolean); }
+
+  function clientOnlyAnalyze(text, lunarDay){
+    // 1) ищем совпавшие символы по простому включению (можно заменить на NER позже)
+    const t = text.toLowerCase();
+    const hits = CURATED.filter(r => t.includes(r.symbol.toLowerCase()));
+    // 2) собираем краткое объяснение (оценочно)
+    const top = hits.slice(0,5);
+    const symList = top.map(h => `• <b>${h.symbol}</b>: ${h.modern_interpretation?.slice(0,180) || ''}${h.modern_interpretation && h.modern_interpretation.length>180?'…':''}`).join('<br>');
+    const lunarNote = (lunarDay && window.TABLES?.ru?.[lunarDay])
+      ? `<div class="muted" style="margin-top:6px">Лунные сутки ${lunarDay}: ${window.TABLES.ru[lunarDay].type} — ${window.TABLES.ru[lunarDay].notes}</div>`
+      : "";
+
+    explain.innerHTML = top.length
+      ? `<p>Найденные символы и ориентиры (оценочно):</p><p>${symList}</p>${lunarNote}`
+      : `<p class="muted">Символы из словаря не распознаны. Это нормально: попробуйте описать сон подробнее или уточнить ключевые объекты/действия.</p>`;
+
+    // 3) простые советы
+    advices.innerHTML = `Советы: запишите сон сразу после пробуждения; отметьте эмоции/фон сна; сравните со вчерашними событиями.`;
+
+    // 4) отрисовать чипсы
+    chips.innerHTML = "";
+    top.forEach(h=>{
+      const b=document.createElement('button');
+      b.className='btn'; b.style.cssText='padding:6px 10px;border-radius:20px;background:#0f1217;border:1px solid var(--border)';
+      b.innerHTML = h.symbol;
+      b.title = (h.modern_interpretation||'').slice(0,240);
+      chips.appendChild(b);
+    });
+
+    box.style.display='block';
+  }
+
+  async function run(){
+    const text = (dreamEl.value||"").trim();
+    const lunarDay = Number(lunarEl.value) || null;
+    if(!text){ dreamEl.focus(); return; }
+
+    status.textContent = "Анализ…";
+    try{
+      if(API_URL){
+        // режим с бэкендом
+        const r = await fetch(API_URL, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ text, lang: document.documentElement.lang || 'ru', lunar_day: lunarDay })
+        });
+        if(!r.ok) throw new Error('API error');
+        const data = await r.json();
+
+        // вывод
+        chips.innerHTML = "";
+        (data.symbols||[]).forEach(s=>{
+          const b=document.createElement('button');
+          b.className='btn'; b.style.cssText='padding:6px 10px;border-radius:20px;background:#0f1217;border:1px solid var(--border)';
+          b.textContent = s; chips.appendChild(b);
+        });
+
+        explain.innerHTML = `
+          <p><b>Интерпретация (оценочно):</b></p>
+          <p>${(data.interpretation_text||'').replace(/\n/g,'<br>')}</p>
+          <p class="muted">Основано на ${data?.neighbors?.length||0} похожих случаях.</p>`;
+        const adv = (data.advice||[]).map(a=>`• ${a}`).join('<br>');
+        advices.innerHTML = adv || 'Советы: запишите сон; отметьте эмоции и контекст.';
+        box.style.display='block';
+      }else{
+        // локальный, без бэкенда
+        clientOnlyAnalyze(text, lunarDay);
+      }
+    }catch(e){
+      console.error(e);
+      // фоллбек — локальная логика
+      clientOnlyAnalyze(text, lunarDay);
+    }finally{
+      status.textContent = "";
+    }
+  }
+
+  btn.addEventListener('click', run);
+})();
+</script>
   </style>
 </head>
 <body>
