@@ -517,23 +517,6 @@ function renderMonth(){
 
   updateMoonIcon(uiTZ);
 }
-
-/* ============= События ============= */
-langSel.addEventListener("change",()=>{ lang=langSel.value; applyI18N(); renderMonth(); });
-tzSel.addEventListener("change",()=>{ if(tzSel.value==="Auto (system)"){$("tzActive").textContent=tz;} renderMonth(); });
-prevBtn.addEventListener("click",()=>{ const uiTZ=tzSel.value==="Auto (system)"?tz:tzSel.value; const {y,m}=ymOf(navDate,uiTZ); navDate=makeLocalNoonYMD(m===1?y-1:y, m===1?12:m-1, 15, uiTZ); renderMonth(); });
-nextBtn.addEventListener("click",()=>{ const uiTZ=tzSel.value==="Auto (system)"?tz:tzSel.value; const {y,m}=ymOf(navDate,uiTZ); navDate=makeLocalNoonYMD(m===12?y+1:y, m===12?1:m+1, 15, uiTZ); renderMonth(); });
-todayBtn.addEventListener("click",()=>{ navDate=new Date(); renderMonth(); });
-
-/* ============= Старт ============= */
-(function init(){
-  fillLang(); fillTZ(); applyI18N();
-  $("year").textContent=new Date().getFullYear();
-  renderMonth();
-})();
-</script>
-</body>
-</html>
 <section id="dreambook" style="padding:24px 16px; max-width: 900px; margin: 0 auto;">
   <h2>Современный сонник</h2>
   <input id="dreamSearch" type="search" placeholder="Найдите символ… (например, вода, полёт)" 
@@ -596,3 +579,19 @@ todayBtn.addEventListener("click",()=>{ navDate=new Date(); renderMonth(); });
   search.addEventListener('input', (e)=> render(filter(e.target.value)));
 })();
 </script>
+/* ============= События ============= */
+langSel.addEventListener("change",()=>{ lang=langSel.value; applyI18N(); renderMonth(); });
+tzSel.addEventListener("change",()=>{ if(tzSel.value==="Auto (system)"){$("tzActive").textContent=tz;} renderMonth(); });
+prevBtn.addEventListener("click",()=>{ const uiTZ=tzSel.value==="Auto (system)"?tz:tzSel.value; const {y,m}=ymOf(navDate,uiTZ); navDate=makeLocalNoonYMD(m===1?y-1:y, m===1?12:m-1, 15, uiTZ); renderMonth(); });
+nextBtn.addEventListener("click",()=>{ const uiTZ=tzSel.value==="Auto (system)"?tz:tzSel.value; const {y,m}=ymOf(navDate,uiTZ); navDate=makeLocalNoonYMD(m===12?y+1:y, m===12?1:m+1, 15, uiTZ); renderMonth(); });
+todayBtn.addEventListener("click",()=>{ navDate=new Date(); renderMonth(); });
+
+/* ============= Старт ============= */
+(function init(){
+  fillLang(); fillTZ(); applyI18N();
+  $("year").textContent=new Date().getFullYear();
+  renderMonth();
+})();
+</script>
+</body>
+</html>
