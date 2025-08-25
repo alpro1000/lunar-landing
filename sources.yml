@@ -26,14 +26,14 @@ sources:
 
   # Reddit (опционально; требуется OAuth-токены; соблюдаем ToS; берём краткие выдержки)
   reddit:
-    enabled: false
+    enabled: true
     subreddits: ["Dreams"]   # список сабов
     limit: 200               # сколько постов забирать (top/month или hot по простоте)
     mode: "hot"              # hot | new | top
 
   # Hugging Face datasets (опционально; для продвинутых)
   hf_datasets:
-    enabled: false
+    enabled: true
     names: []                # напр., ["your-user/dreams-corpus"]; требует pip install datasets
 
   # ВАШ САЙТ (только владелец): вкл. если вы — правообладатель контента
