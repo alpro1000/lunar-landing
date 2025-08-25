@@ -2,23 +2,30 @@ name: Build Dreambook Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * *" # ежедневно 02:00 UTC
+    - cron: "0 2 * * *"
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install -q requests beautifulsoup4 html2text tqdm rapidfuzz pyyaml
-      # - run: python etl_dreams.py --sources dreambank,sddb_zenodo,dryad --out data/dreams_curated.json
-      - name: Ensure data exists
+      - name: Install deps
         run: |
-          test -f data/dreams_curated.json || echo "[]" > data/dreams_curated.json
-      - name: Commit
+          python -m pip install --upgrade pip
+          pip install -r etl/requirements.txt
+          # опц.: pip install openai
+      - name: Run ETL
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python etl/etl_dreams.py --config etl/sources_config.yml --out data/dreams_curated.json
+      - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/dreams_curated.json
-          git commit -m "Update dreams data" || echo "No changes"
+          git commit -m "Update dreambook data" || echo "No changes"
           git push
