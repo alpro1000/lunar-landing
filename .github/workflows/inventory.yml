@@ -14,7 +14,7 @@ jobs:
         with: { python-version: '3.11' }
       - name: Generate inventory
         run: |
-          python - <<'PY'
+          python <<EOF
 import os, json, pathlib
 rows=[]; dsum=fsum=0
 for cur, dnames, fnames in os.walk('.'):
@@ -31,7 +31,7 @@ json.dump({
   "tree":[{"path":('.' if r[0]=='.' else r[0]),"dirs":r[1],"files":r[2]} for r in rows],
   "total_dirs":dsum,"total_files":fsum
 }, open("INVENTORY.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
-PY
+EOF
       - name: Commit inventory
         run: |
           git config user.name "inventory-bot"
