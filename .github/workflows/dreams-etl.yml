@@ -53,7 +53,7 @@ jobs:
           python etl/etl_dreams.py --sources dreambank,sddb_zenodo,dryad,donders,monash --out dreams_curated.jsonl
 
           # JSONL -> JSON (массив); лёгкая валидация и усечение размера при необходимости
-          python - <<'PY'
+          python - <<EOF
 import json, os, sys
 p_in = "dreams_curated.jsonl"
 rows=[]
@@ -72,7 +72,7 @@ if len(rows) > MAX_ROWS:
 with open("data/dreams_curated.json", "w", encoding="utf-8") as f:
     json.dump(rows, f, ensure_ascii=False, indent=2)
 print(f"✔ rows: {len(rows)} -> data/dreams_curated.json")
-PY
+EOF
 
       - name: Sanity check
         run: |
