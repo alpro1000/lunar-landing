@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: lunar-widget-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LUNAR_API_URL
+        sync: false
+      - key: NEXT_PUBLIC_LUNAR_API_URL
+        value: /api/lunar
+      - key: LUNAR_DEFAULT_TZ
+        value: UTC

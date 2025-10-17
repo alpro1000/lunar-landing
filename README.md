@@ -10,6 +10,8 @@
 - `frontend/e2e/` — E2E тест (Playwright) для сценария раскрытия календаря.
 - `frontend/stories/` — Storybook-пример для визуальной проверки.
 - Запуск: `cd frontend && npm install && npm run dev`.
+- Прод билд: `npm run build && npm run start` (используется в Render).
+- Подробная инструкция по деплою: [docs/deployment-render.md](docs/deployment-render.md).
 
 ## Backend API
 - `backend/app/main.py` — FastAPI эндпоинт `/lunar?date=YYYY-MM-DD&locale=en&tz=Europe/Moscow`.
