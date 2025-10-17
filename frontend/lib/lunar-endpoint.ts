@@ -1,5 +1,5 @@
 const DEFAULT_BASE = 'http://localhost:8000/lunar';
-const RELATIVE_BASE = '/lunar';
+const RELATIVE_BASE = '/api/lunar';
 
 export function resolveLunarApiBase(isServer: boolean): string {
   if (isServer) {

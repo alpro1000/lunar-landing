@@ -2,7 +2,7 @@ import {test, expect} from '@playwright/test';
 
 test.describe('LunarWidget', () => {
   test('toggles month table and highlights today', async ({page}) => {
-    await page.route('**/lunar?**', async (route) => {
+    await page.route('**/api/lunar?**', async (route) => {
       const url = new URL(route.request().url());
       const date = url.searchParams.get('date') ?? '2024-05-14';
       await route.fulfill({
