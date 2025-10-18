@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
+    "test": "npm run test:unit",
+    "test:unit": "jest",
     "test:watch": "jest --watch",
-    "e2e": "playwright test",
+    "test:e2e": "playwright test",
+    "e2e": "npm run test:e2e",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
   },
